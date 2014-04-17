@@ -10,9 +10,38 @@ local RIGHT = nil
 local TOP = nil
 local BOTTOM = nil
 
+local BRICK_COLORS = {
+  {255, 0, 0}, -- red
+  {255, 127, 0}, -- orange
+  {255, 255, 0}, -- yellow
+  {0, 255, 0}, -- green
+}
+
 local level = nil
 local score = nil
 local life = nil
+local brickCount = nil
+
+local paddle = {
+  width = 100,
+  height = 20,
+  x = nil,
+  y = nil,
+  velocity = 200,
+}
+
+local ball = {
+  width = 20,
+  height = 20,
+  x = nil,
+  y = nil,
+  dx = nil,
+  dy = nil,
+  velocity = 200,
+  docked = false,
+}
+
+local bricks = {}
 
 function left(rect, value)
   if not value then
@@ -48,27 +77,6 @@ function overlaps(rect, other)
           rect:top() < other:bottom() and
           rect:bottom() > other:top())
 end
-
-local paddle = {
-  width = 100,
-  height = 20,
-  x = nil,
-  y = nil,
-  velocity = 200,
-}
-
-local ball = {
-  width = 20,
-  height = 20,
-  x = nil,
-  y = nil,
-  dx = nil,
-  dy = nil,
-  velocity = 200,
-  docked = false,
-}
-
-local bricks = {}
 
 function paddle.move(dx)
   paddle.x = paddle.x + dx
@@ -130,11 +138,34 @@ function ball.move(dt)
 
     -- Check for collisions with paddle
     if ball:overlaps(paddle) then
+      -- TODO: affect angle depending on where it hit paddle
       local overy = ball:bottom() - paddle:top()
       ball:bottom(paddle:top() - overy)
       ball.dy = -ball.dy
     end
-    -- TODO: check for collisions with bricks
+
+    -- Check for collisions with bricks
+    for j, row in ipairs(bricks) do
+      for i, brick in ipairs(row) do
+        if brick and ball:overlaps(brick) then
+          -- Score!
+          score = score + brick.points
+
+          -- Bounce ball
+          -- TODO: bounce ball properly!
+          local overy = brick:bottom() - ball:top()
+          ball:top(brick:bottom() + overy)
+          ball.dy = -ball.dy
+
+          -- Destroy brick
+          bricks[j][i] = false
+          brickCount = brickCount - 1
+          if brickCount == 0 then
+            gamestate.push(GameStates.WIN_GAME)
+          end
+        end
+      end
+    end
   end
 end
 
@@ -143,6 +174,24 @@ function ball.followPaddle()
   ball.dy = 0
   ball.x = paddle.x
   ball.y = paddle.y - paddle.height/2 - 5 - ball.height/2
+end
+
+function newBrick(x, y, color, points, hits)
+  return {
+    x = x,
+    y = y,
+    width = 100,
+    height = 50,
+    color = color or {0, 0, 0},
+    points = points or 1,
+    hits = hits or 1,
+
+    left = left,
+    right = right,
+    top = top,
+    bottom = bottom,
+    overlaps = overlaps,
+  }
 end
 
 function playstate.init(gamestate)
@@ -173,7 +222,20 @@ function playstate.enter()
   -- Create ball
   ball.reset()
 
-  -- TODO: create bricks
+  -- Create bricks
+  brickCount = 0
+  for j = 0, 3 do
+    local y = TOP + 80 + j * 50 + 25
+    table.insert(bricks, {})
+    for i = 0, 6 do
+      local x = LEFT + i * 100 + 50
+      local color = BRICK_COLORS[j + 1]
+      local points = (3 - j) * 2 + 1
+      local brick = newBrick(x, y, color, points)
+      table.insert(bricks[#bricks], brick)
+      brickCount = brickCount + 1
+    end
+  end
 end
 
 function playstate.update(dt)
@@ -202,7 +264,20 @@ function playstate.draw()
   love.graphics.rectangle('fill', LEFT, TOP,
                           RIGHT - LEFT, BOTTOM - TOP)
 
-  -- TODO: draw bricks
+  -- Draw bricks
+  for _, row in ipairs(bricks) do
+    --love.graphics.setColor()
+    for _, brick in ipairs(row) do
+      if brick then
+        love.graphics.setColor(unpack(brick.color))
+        love.graphics.rectangle('fill', brick:left(), brick:top(),
+                                brick.width, brick.height)
+        love.graphics.setColor(0, 0, 0)
+        love.graphics.rectangle('line', brick:left(), brick:top(),
+                                brick.width, brick.height)
+      end
+    end
+  end
 
   -- Draw paddle
   love.graphics.setColor(0, 0, 0)
