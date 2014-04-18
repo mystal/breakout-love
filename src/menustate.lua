@@ -27,7 +27,7 @@ function menustate.update(dt)
     mainMenuSelection = (mainMenuSelection % #MainText) + 1
   end
 
-  if input.wasKeyPressed('return') then
+  if input.wasKeyPressed('return') or input.wasKeyPressed(' ') then
     if MainFunctions[mainMenuSelection] then
       MainFunctions[mainMenuSelection]()
     end
@@ -35,13 +35,24 @@ function menustate.update(dt)
 end
 
 function menustate.draw()
+  -- Set background color
+  love.graphics.setBackgroundColor(0, 0, 0)
+
+  -- Draw title
+  love.graphics.setColor(255, 0, 0)
+  love.graphics.printf('BREAKOUT', 0, 100, 800, 'center')
+  love.graphics.setColor(255, 255, 255)
+  love.graphics.printf('The game, the clone, the experience',
+                       0, 200, 800, 'center')
+
+  -- Draw menu
   for i, text in ipairs(MainText) do
     if i == mainMenuSelection then
       love.graphics.setColor(255, 0, 0)
     else
       love.graphics.setColor(255, 255, 255)
     end
-    love.graphics.printf(text, 400, 300 + (i - 1)*50, 0, 'center')
+    love.graphics.printf(text, 0, 300 + (i - 1)*50, 800, 'center')
   end
 end
 

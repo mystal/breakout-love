@@ -1,8 +1,8 @@
---require 'src/losestate'
+require 'src/losestate'
 require 'src/menustate'
 require 'src/playstate'
 require 'src/pausestate'
---require 'src/winstate'
+require 'src/winstate'
 
 gamestate = {}
 
@@ -15,11 +15,13 @@ GameStates = {
 }
 
 local gameStack = {}
-local states = {menustate, playstate, pausestate}
+local states = {menustate, playstate, pausestate, winstate, losestate}
 
 function gamestate.init()
   for _, state in ipairs(states) do
-    state.init(gamestate)
+    if state.init then
+      state.init(gamestate)
+    end
   end
 
   gamestate.push(GameStates.MENU)

@@ -1,28 +1,28 @@
-pausestate = {}
+winstate = {}
 
 local MENU_WIDTH = 300
 local MENU_HEIGHT = 400
 local MENU_X = nil
 local MENU_Y = nil
 
-local Menu = {CONTINUE = 1, OPTIONS = 2, QUIT = 3}
-local MenuText = {'Continue', 'Options', 'Quit'}
+local Menu = {PLAY_AGAIN = 1, QUIT = 2}
+local MenuText = {'Play Again', 'Quit'}
 local MenuFunctions = nil
 
 local menuSelection = nil
 
-function pausestate.init()
+function winstate.init()
   MENU_X = SCREEN_WIDTH/2
   MENU_Y = SCREEN_HEIGHT/2
 
-  MenuFunctions = {continue, nil, quit}
+  MenuFunctions = {playagain, quit}
 end
 
-function pausestate.enter()
-  menuSelection = Menu.CONTINUE
+function winstate.enter()
+  menuSelection = Menu.PLAY_AGAIN
 end
 
-function pausestate.update(dt)
+function winstate.update(dt)
   if input.wasKeyPressed('up') then
     if menuSelection ~= 1 then
       menuSelection = menuSelection - 1
@@ -33,24 +33,22 @@ function pausestate.update(dt)
     menuSelection = (menuSelection % #MenuText) + 1
   end
 
-  if input.wasKeyPressed('escape') then
-    continue()
-  elseif input.wasKeyPressed('return') or input.wasKeyPressed(' ') then
+  if input.wasKeyPressed('return') or input.wasKeyPressed(' ') then
     if MenuFunctions[menuSelection] then
       MenuFunctions[menuSelection]()
     end
   end
 end
 
-function pausestate.draw()
+function winstate.draw()
   gamestate.peek(1).draw()
 
   love.graphics.setColor(180, 180, 180, 230)
   love.graphics.rectangle('fill', MENU_X - MENU_WIDTH/2, MENU_Y - MENU_HEIGHT/2,
                           MENU_WIDTH, MENU_HEIGHT)
   love.graphics.setColor(0, 0, 0)
-  love.graphics.printf('Paused',
-                       MENU_X, MENU_Y - MENU_HEIGHT/2 + 10, 0, 'center')
+  love.graphics.printf('You Win!',
+                       250, MENU_Y - MENU_HEIGHT/2 + 10, MENU_WIDTH, 'center')
 
   for i, text in ipairs(MenuText) do
     if i == menuSelection then
@@ -58,12 +56,13 @@ function pausestate.draw()
     else
       love.graphics.setColor(0, 0, 0)
     end
-    love.graphics.printf(text, 400, 300 + (i - 1)*50, 0, 'center')
+    love.graphics.printf(text, 250, 300 + (i - 1)*50, MENU_WIDTH, 'center')
   end
 end
 
-function continue()
+function playagain()
   gamestate.pop()
+  gamestate.switch(GameStates.PLAY_GAME)
 end
 
 function quit()
