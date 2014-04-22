@@ -1,6 +1,9 @@
 require 'math'
 
+require 'src/ball'
+require 'src/brick'
 require 'src/input'
+require 'src/paddle'
 
 playstate = {}
 
@@ -22,69 +25,11 @@ local score = nil
 local life = nil
 local brickCount = nil
 
-local paddle = {
-  width = 100,
-  height = 20,
-  x = nil,
-  y = nil,
-  velocity = 200,
-}
+local paddle = Paddle:new(0, 0, 100, 20, 200)
 
-local ball = {
-  width = 20,
-  height = 20,
-  x = nil,
-  y = nil,
-  dx = nil,
-  dy = nil,
-  velocity = 200,
-  docked = false,
-}
+local ball = Ball:new(0, 0, 20, 20, 200, paddle)
 
 local bricks = nil
-
-function left(rect, value)
-  if not value then
-    return rect.x - rect.width/2
-  end
-  rect.x = value + rect.width/2
-end
-
-function right(rect, value)
-  if not value then
-    return rect.x + rect.width/2
-  end
-  rect.x = value - rect.width/2
-end
-
-function top(rect, value)
-  if not value then
-    return rect.y - rect.height/2
-  end
-  rect.y = value + rect.height/2
-end
-
-function bottom(rect, value)
-  if not value then
-    return rect.y + rect.height/2
-  end
-  rect.y = value - rect.height/2
-end
-
-function overlaps(rect, other)
-  return (rect:right() > other:left() and
-          rect:left() < other:right() and
-          rect:top() < other:bottom() and
-          rect:bottom() > other:top())
-end
-
-function intersection(rect, other)
-  local left = math.max(rect:left(), other:left())
-  local right = math.min(rect:right(), other:right())
-  local top = math.max(rect:top(), other:top())
-  local bottom = math.min(rect:bottom(), other:bottom())
-  return math.max(right - left, 0), math.max(bottom - top, 0)
-end
 
 function paddle.move(dx)
   paddle.x = paddle.x + dx
@@ -97,24 +42,9 @@ function paddle.move(dx)
   end
 end
 
-function ball.shoot()
-  ball.docked = false
-
-  -- Generate random direction to shoot
-  -- 90 degree range around the vertical
-  local angle = love.math.random() * math.pi/2 + math.pi/4
-  ball.dx = ball.velocity * math.cos(angle)
-  ball.dy = -ball.velocity * math.sin(angle)
-end
-
-function ball.reset()
-  ball.docked = true
-  ball.followPaddle()
-end
-
 function ball.move(dt)
   if ball.docked then
-    ball.followPaddle()
+    ball:followPaddle()
   else
     -- Move in current direction
     ball.x = ball.x + ball.dx * dt
@@ -138,7 +68,7 @@ function ball.move(dt)
       -- Lose life, reset ball
       life = life - 1
       if life > 0 then
-        ball.reset()
+        ball:reset()
       else
         gamestate.push(GameStates.LOSE_GAME)
       end
@@ -209,47 +139,12 @@ function ball.move(dt)
   end
 end
 
-function ball.followPaddle()
-  ball.dx = 0
-  ball.dy = 0
-  ball.x = paddle.x
-  ball.y = paddle.y - paddle.height/2 - 5 - ball.height/2
-end
-
-function newBrick(x, y, color, points, hits)
-  return {
-    x = x,
-    y = y,
-    width = 100,
-    height = 50,
-    color = color or {0, 0, 0},
-    points = points or 1,
-    hits = hits or 1,
-
-    left = left,
-    right = right,
-    top = top,
-    bottom = bottom,
-    overlaps = overlaps,
-    intersection = intersection,
-  }
-end
-
 function playstate.init(gamestate)
   BOUNDARY = 50
   LEFT = BOUNDARY
   RIGHT = SCREEN_WIDTH - BOUNDARY
   TOP = BOUNDARY
   BOTTOM = SCREEN_HEIGHT
-
-  for _, obj in ipairs({paddle, ball}) do
-    obj.left = left
-    obj.right = right
-    obj.top = top
-    obj.bottom = bottom
-    obj.overlaps = overlaps
-    obj.intersection = intersection
-  end
 end
 
 function playstate.enter()
@@ -257,12 +152,11 @@ function playstate.enter()
   score = 0
   life = 3
 
-  -- Create paddle
+  -- Center paddle
   paddle.x = SCREEN_WIDTH/2
   paddle.y = BOTTOM - 5 - paddle.height/2
 
-  -- Create ball
-  ball.reset()
+  ball:reset()
 
   -- Create bricks
   bricks = {}
@@ -274,7 +168,7 @@ function playstate.enter()
       local x = LEFT + i * 100 + 50
       local color = BRICK_COLORS[j + 1]
       local points = (3 - j) * 2 + 1
-      local brick = newBrick(x, y, color, points)
+      local brick = Brick:new(x, y, 100, 50, color, points)
       table.insert(bricks[#bricks], brick)
       brickCount = brickCount + 1
     end
@@ -292,7 +186,7 @@ function playstate.update(dt)
   paddle.move(dir * paddle.velocity * dt)
 
   if ball.docked and input.wasKeyPressed(' ') then
-    ball.shoot()
+    ball:shoot()
   end
   ball.move(dt)
 
