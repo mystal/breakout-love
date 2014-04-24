@@ -1,10 +1,10 @@
-require 'math'
+local math = require 'math'
 
 local class = require 'lib/middleclass'
 
-require 'src/rect'
+local Rect = require 'src/rect'
 
-Ball = class('Ball', Rect)
+local Ball = class('Ball', Rect)
 
 function Ball:initialize(x, y, w, h, velocity, paddle)
   Rect.initialize(self, x, y, w, h)
@@ -36,3 +36,5 @@ function Ball:shoot()
   self.dx = self.velocity * math.cos(angle)
   self.dy = -self.velocity * math.sin(angle)
 end
+
+return Ball

@@ -1,6 +1,6 @@
 local class = require 'lib/middleclass'
 
-require 'src/rect'
+local Rect = require 'src/rect'
 
 Brick = class('Brick', Rect)
 
@@ -10,3 +10,5 @@ function Brick:initialize(x, y, w, h, color, points, hits)
   self.points = points or 1
   self.hits = hits or 1
 end
+
+return Brick

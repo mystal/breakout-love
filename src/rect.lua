@@ -1,8 +1,8 @@
-require 'math'
+local math = require 'math'
 
 local class = require 'lib/middleclass'
 
-Rect = class('Rect')
+local Rect = class('Rect')
 
 function Rect:initialize(x, y, w, h)
   self.x = x
@@ -53,3 +53,5 @@ function Rect:intersection(other)
   local bottom = math.min(self:bottom(), other:bottom())
   return math.max(right - left, 0), math.max(bottom - top, 0)
 end
+
+return Rect
