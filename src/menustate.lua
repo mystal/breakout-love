@@ -1,4 +1,5 @@
-require 'src/input'
+local gamestate = require 'src/gamestate'
+local input = require 'src/input'
 
 menustate = {}
 

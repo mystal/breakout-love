@@ -1,4 +1,4 @@
-input = {}
+local input = {}
 
 local heldKeys = {}
 local pressedKeys = {}
@@ -36,3 +36,5 @@ end
 function input.wasKeyReleased(key)
   return releasedKeys[key]
 end
+
+return input

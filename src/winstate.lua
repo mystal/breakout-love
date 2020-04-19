@@ -1,3 +1,6 @@
+local gamestate = require 'src/gamestate'
+local input = require 'src/input'
+
 winstate = {}
 
 local MENU_WIDTH = 300

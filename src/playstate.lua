@@ -2,7 +2,8 @@ require 'math'
 
 local Ball = require 'src/ball'
 local Brick = require 'src/brick'
-require 'src/input'
+local gamestate = require 'src/gamestate'
+local input = require 'src/input'
 local Paddle = require 'src/paddle'
 
 playstate = {}

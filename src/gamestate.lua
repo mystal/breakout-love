@@ -1,10 +1,11 @@
+local input = require 'src/input'
 require 'src/losestate'
 require 'src/menustate'
 require 'src/playstate'
 require 'src/pausestate'
 require 'src/winstate'
 
-gamestate = {}
+local gamestate = {}
 
 GameStates = {
   MENU = 1,
@@ -77,3 +78,5 @@ end
 function gamestate.depth()
   return #gameStack
 end
+
+return gamestate

@@ -1,3 +1,7 @@
+local Gamestate = require 'lib/hump.gamestate'
+
+local input = require 'src/input'
+
 losestate = {}
 
 local MENU_WIDTH = 300
@@ -18,7 +22,7 @@ function losestate.init()
   MenuFunctions = {retry, quit}
 end
 
-function losestate.enter()
+function losestate.enter(from)
   menuSelection = Menu.RETRY
 end
 
